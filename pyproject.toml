@@ -1,0 +1,26 @@
+[project]
+name = "aisnow"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "requests",
+    "pyyaml",
+    "python-dotenv",
+    "pydantic",
+    "langchain-openai",
+    "langchain-core",
+    "langgraph",
+    "openai==1.55.3",
+    "pandas",
+    "openpyxl",
+    "unstructured",
+    "langchain-community",
+    "uvicorn",
+    "networkx",
+    "python-multipart",
+    "sqlparse",
+]
+
+[tool.uv]
+dev-dependencies = []
