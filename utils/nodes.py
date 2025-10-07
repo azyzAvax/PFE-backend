@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 load_dotenv()
-api_key = os.getenv("API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     logging.error("API_KEY environment variable not set!")
     raise ValueError("API_KEY environment variable not set!")
