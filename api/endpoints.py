@@ -21,6 +21,61 @@ AZURE_PAT = os.getenv("AZURE_PAT")
 AZURE_ORG_URL = os.getenv("AZURE_ORG_URL")
 AZURE_PROJECT = os.getenv("AZURE_PROJECT")
 AZURE_REPO_ID = os.getenv("AZURE_REPO_ID")
+
+from pydantic import BaseModel,Field
+
+    
+from services.dashboard_pipeline_service import DashboardPipelineService
+
+from fastapi import APIRouter, Request
+from typing import Dict, Any
+class DashboardRequest(BaseModel):
+    dashboard_prompt: str
+
+
+
+
+@router.post("/api/pipeline/dashboard")
+async def generate_dashboard_pipeline(req: Request, request_body: DashboardRequest):
+    """
+    Generate a complete DataOps pipeline for a dashboard request.
+
+    - Step 1: Extract KPIs, dimensions, and data transformation flow.
+    - Step 2: Generate a visual flow (Mermaid diagram).
+    - Step 3: Provide natural language explanations of each step.
+    """
+    try:
+        
+        service = DashboardPipelineService()
+        result = service.generate_pipeline(request_body.dict())
+
+        if not result.get("success"):
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": result.get("error", "Unknown error"),
+                    "success": False
+                },
+            )
+
+        return JSONResponse(
+            content={
+                "success": True,
+                "flow": result["flow"],
+                "diagram": result["diagram"],
+                "explanations": result["explanations"],
+            },
+            status_code=200,
+        )
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+            },
+        )
+
 @router.post("/generate-ddl/")
 async def generate_ddl_endpoint(file: UploadFile = File(...), env_vars: dict = Depends(get_env_vars)):
     """Generate DDL from an Excel file."""
@@ -309,7 +364,7 @@ async def list_active_projects_endpoint(env_vars: dict = Depends(get_env_vars)):
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
     
-from pydantic import BaseModel,Field
+
 
 class ProcedureInput(BaseModel):
     procedure_name: str = Field(..., description="The name of the Snowflake stored procedure.")
@@ -679,17 +734,6 @@ async def deploy_multiple_to_azure_with_workitem(
     
     changelog_contents = {path: open(path, "r", encoding="utf-8").read() for path in changelog_paths.keys() if os.path.exists(path)}
     
-    # if debug_mode:
-    #     logger.info(f"Simulated push of {len(filenames)} files and changelogs to branch {branch_name}")
-    #     return {
-    #         "branch": branch_name,
-    #         "files_uploaded": filenames,
-    #         "changelogs_uploaded": list(changelog_paths.values()),
-    #         "pull_request_url": "http://localhost/mock/pullRequest/123",
-    #         "work_item_linked": work_item_id is not None,
-    #         "work_item_id": work_item_id
-    #     }
-    # else:
     refs_url = f"{env_vars['AZURE_ORG_URL']}/{env_vars['AZURE_PROJECT']}/_apis/git/repositories/{env_vars['AZURE_REPO_ID']}/refs?filter=heads/main&api-version=7.1-preview.1"
     refs_res = json.loads(request.urlopen(request.Request(refs_url, headers=get_auth_headers(env_vars.get('AZURE_PAT')))).read().decode())
     main_commit = refs_res["value"][0]["objectId"]

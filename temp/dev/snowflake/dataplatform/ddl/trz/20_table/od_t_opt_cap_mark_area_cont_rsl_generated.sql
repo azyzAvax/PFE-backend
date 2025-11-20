@@ -27,4 +27,4 @@ CREATE TABLE trz_vc_opt.od_t_opt_power_cap_market_by_area_auc_cont_rslt (
     process_at TIMESTAMP_LTZ(7) NOT NULL COMMENT 'レコード作成／更新処理の実行日時',
     process_id VARCHAR(255) NOT NULL COMMENT 'レコード作成／更新処理を特定するID',
     PRIMARY KEY (cont_rslt_rls_date, target_fiscal_year, auc_type_name, area_code, ubis_data_id)
-) WITH DATA_RETENTION_TIME_IN_DAYS = 30;
+) DATA_RETENTION_TIME_IN_DAYS = 30;

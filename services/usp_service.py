@@ -15,24 +15,7 @@ import sys; sys.setrecursionlimit(2000);
 from utils.llm_manager import  LLMSingleton
 logger = logging.getLogger("uvicorn.error")
 llm = LLMSingleton().get_llm()
-def init_llm(env_vars: dict) -> ChatOpenAI:
-    """Initialize the LLM with environment variables."""
-    try:
-        api_key = env_vars.get("OPENAI_API_KEY")
-        if not api_key:
-            logger.error("OPENAI_API_KEY not found in environment variables")
-            raise ValueError("OPENAI_API_KEY is missing")
 
-        llm = ChatOpenAI(
-            temperature=0,
-            model_name="gpt-4o-mini",
-            openai_api_key=api_key,
-        )
-        logger.info("LLM initialized successfully")
-        return llm
-    except Exception as e:
-        logger.error(f"Failed to initialize LLM: {str(e)}\n{traceback.format_exc()}")
-        raise
 
 usp_graph = StateGraph(GraphState)
 
@@ -96,9 +79,10 @@ You are an expert Snowflake SQL assistant. Based on the following extracted meta
 ### Example format:
 
 ```sql
-CREATE OR REPLACE PROCEDURE {{{{procedure_name}}}}()
+CREATE OR REPLACE PROCEDURE {{{{Schema_name.procedure_name}}}}()
 RETURNS OBJECT
 LANGUAGE JAVASCRIPT
+COMMENT = {{{{Logical_Name}}}}
 EXECUTE AS CALLER
 AS
 $$
@@ -125,6 +109,9 @@ $$;
   
 Metadata from GraphState:
 {metadata}
+
+### STRICT OUTPUT RULE:
+The output must start with CREATE OR REPLACE PROCEDURE and end with the trailing semicolon (no extra ```sql in the beginning).
 """
         )
         response = llm.invoke(usp_template_prompt.format(metadata=json.dumps(state.metadata)))
